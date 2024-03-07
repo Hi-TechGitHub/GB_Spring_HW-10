@@ -6,18 +6,25 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Metrics;
 import ru.example.gb.model.Act;
 import ru.example.gb.service.ActService;
 
 import java.util.List;
 
+
 @Controller
 @AllArgsConstructor
 public class ActController {
     private final ActService actService;
+    private final Counter addActCounter = Metrics.counter("add_act_count");
+    private final Timer findAllActsTimer = Metrics.timer("find_acts_timer");
 
     @GetMapping("/acts")
     public String findAll(Model model) {
+        findAllActsTimer.baseTimeUnit();
         List<Act> acts = actService.getAllActs();
         model.addAttribute("acts", acts);
         return "act-list";
@@ -25,6 +32,7 @@ public class ActController {
 
     @GetMapping("/act-create")
     public String createActForm(Act ignoredAct) {
+        addActCounter.increment();
         return "act-create";
     }
 
